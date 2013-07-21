@@ -17,6 +17,9 @@ Window window;
 TextLayer text_time_layer;
 Layer line_layer;
 
+GColor Foreground;
+GColor Background;
+
 typedef enum {
     none_e         = 0x00,
     top_left_e     = 0x01,
@@ -64,7 +67,7 @@ void line_layer_update_callback(Layer *me, GContext* ctx) {
   (void)me;
 
   // divider lines
-  graphics_context_set_stroke_color(ctx, GColorBlack);
+  graphics_context_set_stroke_color(ctx, Foreground);
   graphics_draw_line(ctx, GPoint(8, 144), GPoint(131, 144));
   graphics_draw_line(ctx, GPoint(8, 145), GPoint(131, 145));
   graphics_draw_line(ctx, GPoint(8, 146), GPoint(131, 146));
@@ -77,7 +80,7 @@ void line_layer_update_callback(Layer *me, GContext* ctx) {
            shading =  0,
            modulo  =  0;
  
-  graphics_context_set_fill_color(ctx, GColorBlack);
+  graphics_context_set_fill_color(ctx, Foreground);
   if ((position & top_left_e))
     graphics_fill_rect(ctx, GRect(padding, padding,  s, s), 4, GCornersAll);
   if ((position & top_right_e))
@@ -102,7 +105,7 @@ void line_layer_update_callback(Layer *me, GContext* ctx) {
   }
 
   // lighten time block
-  graphics_context_set_stroke_color(ctx, GColorWhite);
+  graphics_context_set_stroke_color(ctx, Background);
   modulo = minutes % 15;
 
   // Non-linear shading - watch infinite loop with linear shading 0
@@ -137,6 +140,18 @@ void line_layer_update_callback(Layer *me, GContext* ctx) {
 void update_time(PblTm *p_time) {
   char *time_format;
 
+  // Set global colors
+  if (p_time->tm_hour % 2 == 0) {
+    // EVEN
+    Foreground = GColorBlack;
+    Background = GColorWhite;
+  }
+  else {
+    Foreground = GColorWhite;
+    Background = GColorBlack;
+  }
+  window_set_background_color(&window, Background);
+  
 
   if (p_time->tm_min == 0) {
     position = none_e;
@@ -167,6 +182,7 @@ void update_time(PblTm *p_time) {
     memmove(time_text, &time_text[1], sizeof(time_text) - 1);
   }
 
+  text_layer_set_text_color(&text_time_layer, Foreground);
   text_layer_set_text(&text_time_layer, time_text);
 }
 
